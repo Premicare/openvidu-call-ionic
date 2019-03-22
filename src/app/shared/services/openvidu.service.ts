@@ -8,8 +8,8 @@ import { throwError as observableThrowError } from 'rxjs';
 })
 export class OpenViduService {
 
-  OPENVIDU_SERVER_URL = 'https://' + location.hostname + ':4443/';
-  MY_SECRET = 'MY_SECRET';
+  OPENVIDU_SERVER_URL = 'https://openvidu.daking.se';
+  MY_SECRET = '4b302879-b53d-41ac-8899-6c67fc83f102';
 
   constructor(private http: HttpClient) { }
 
