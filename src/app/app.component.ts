@@ -32,7 +32,7 @@ export class AppComponent {
         script2.src = 'assets/libs/adapter-4.0.1.js';
         script2.async = false;
         document.head.appendChild(script2);
-    }
+      }
     });
   }
 }

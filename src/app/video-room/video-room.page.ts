@@ -33,7 +33,7 @@ import { StreamComponent } from '../shared/components/stream/stream.component';
                 }),
             ),
             transition('in => out', animate('200ms', keyframes([style({ transform: 'translateX(100px)', display: 'none' })]))),
-            transition('out => in', animate('200ms', keyframes([style({ transform: 'translateX(0px)'})]))),
+            transition('out => in', animate('200ms', keyframes([style({ transform: 'translateX(0px)' })]))),
         ]),
         trigger('slideLeftRightChat', [
             state(
@@ -65,7 +65,7 @@ import { StreamComponent } from '../shared/components/stream/stream.component';
                 }),
             ),
             transition('in => out', animate('200ms', keyframes([style({ transform: 'translateY(100px)', display: 'none' })]))),
-            transition('out => in', animate('200ms', keyframes([style({ transform: 'translateY(0px)'})]))),
+            transition('out => in', animate('200ms', keyframes([style({ transform: 'translateY(0px)' })]))),
         ]),
     ],
 })
@@ -114,7 +114,7 @@ export class VideoRoomPage implements OnInit, OnDestroy {
         public modalController: ModalController,
         private androidPermissions: AndroidPermissions,
         public alertController: AlertController,
-    ) {}
+    ) { }
 
     @HostListener('window:beforeunload')
     beforeunloadHandler() {
@@ -209,15 +209,18 @@ export class VideoRoomPage implements OnInit, OnDestroy {
 
     toggleCamera() {
         this.OV.getDevices().then((devices) => {
+            var deviceId = this.localUser.getActualDeviceId()
+            console.log(this.localUser)
             const videoArray = devices.filter((device) => device.kind === 'videoinput');
             console.log('DEVICES ', videoArray);
-            console.log('DEVICE SELECTED: ', this.localUser.getActualDeviceId());
+            console.log('DEVICE SELECTED: ', deviceId);
             if (videoArray && videoArray.length > 0) {
                 let videoSource: string;
                 // Select the first different device
                 const firstDeviceId = videoArray.shift().deviceId;
                 const lastDeviceId = videoArray.pop().deviceId;
-                videoSource = lastDeviceId === this.localUser.getActualDeviceId() ? firstDeviceId :  lastDeviceId;
+                console.log(this.localUser.getActualDeviceId(), firstDeviceId, lastDeviceId)
+                videoSource = lastDeviceId === this.localUser.getActualDeviceId() ? firstDeviceId : lastDeviceId;
 
                 console.log('SETTING DEVICE ID: ', videoSource);
                 this.OV.initPublisherAsync(undefined, {
@@ -300,16 +303,16 @@ export class VideoRoomPage implements OnInit, OnDestroy {
 
     private subscribeToUserChanged() {
         this.session.on('signal:userChanged', (event: any) => {
-          const data = JSON.parse(event.data);
-          this.remoteUsers.forEach((user: UserModel) => {
-            if (user.getConnectionId() === event.from.connectionId) {
-              if (data.avatar !== undefined) {
-                user.setUserAvatar(data.avatar);
-              }
-            }
-          });
+            const data = JSON.parse(event.data);
+            this.remoteUsers.forEach((user: UserModel) => {
+                if (user.getConnectionId() === event.from.connectionId) {
+                    if (data.avatar !== undefined) {
+                        user.setUserAvatar(data.avatar);
+                    }
+                }
+            });
         });
-      }
+    }
 
     private subscribeToStreamCreated() {
         this.session.on('streamCreated', (event: StreamEvent) => {
@@ -374,14 +377,14 @@ export class VideoRoomPage implements OnInit, OnDestroy {
 
     private sendSignalUserAvatar(user: UserModel): void {
         const data = {
-          avatar: user.getAvatar(),
+            avatar: user.getAvatar(),
         };
         const signalOptions: SignalOptions = {
-          data: JSON.stringify(data),
-          type: 'userChanged',
+            data: JSON.stringify(data),
+            type: 'userChanged',
         };
         this.session.signal(signalOptions);
-      }
+    }
 
     private connectToSession(): void {
         this.openViduSrv
@@ -406,18 +409,19 @@ export class VideoRoomPage implements OnInit, OnDestroy {
                     if (this.platform.is('android')) {
                         console.log('Android platform');
                         this.checkAndroidPermissions()
-                        .then(() => {
-                            this.connectWebCam();
-                        })
-                        .catch((err) => {
-                            console.error(err);
-                        });
+                            .then(() => {
+                                this.connectWebCam();
+                            })
+                            .catch((err) => {
+                                console.error(err);
+                            });
 
                     } else if (this.platform.is('ios')) {
                         console.log('iOS platform');
                         this.connectWebCam();
                     }
                 } else {
+                    
                     this.connectWebCam();
                 }
             })
@@ -449,15 +453,15 @@ export class VideoRoomPage implements OnInit, OnDestroy {
                                                     reject(
                                                         new Error(
                                                             'Permissions denied: ' +
-                                                                '\n' +
-                                                                ' CAMERA = ' +
-                                                                camera.hasPermission +
-                                                                '\n' +
-                                                                ' AUDIO = ' +
-                                                                audio.hasPermission +
-                                                                '\n' +
-                                                                ' AUDIO_SETTINGS = ' +
-                                                                modifyAudio.hasPermission,
+                                                            '\n' +
+                                                            ' CAMERA = ' +
+                                                            camera.hasPermission +
+                                                            '\n' +
+                                                            ' AUDIO = ' +
+                                                            audio.hasPermission +
+                                                            '\n' +
+                                                            ' AUDIO_SETTINGS = ' +
+                                                            modifyAudio.hasPermission,
                                                         ),
                                                     );
                                                 }
@@ -465,8 +469,8 @@ export class VideoRoomPage implements OnInit, OnDestroy {
                                             .catch((err) => {
                                                 console.error(
                                                     'Checking permission ' +
-                                                        this.androidPermissions.PERMISSION.MODIFY_AUDIO_SETTINGS +
-                                                        ' failed',
+                                                    this.androidPermissions.PERMISSION.MODIFY_AUDIO_SETTINGS +
+                                                    ' failed',
                                                 );
                                                 reject(err);
                                             });
@@ -502,15 +506,24 @@ export class VideoRoomPage implements OnInit, OnDestroy {
         }).then((publisher) => {
             this.session.publish(publisher);
             this.localUser.setStreamManager(publisher);
+
             this.localUser.getStreamManager().on('streamPlaying', () => {
                 this.updateLayout();
                 (<HTMLElement>this.localUser.getStreamManager().videos[0].video).parentElement.classList.remove('custom-class');
             });
+
             this.openViduSrv.getRandomAvatar().then((avatar) => {
                 this.localUser.setUserAvatar(avatar);
                 this.sendSignalUserAvatar(this.localUser);
             });
 
+            this.OV.getDevices().then((devices) => {
+                devices.forEach(device => {
+                    if (device.kind === 'videoinput' && device.label.toLowerCase().includes('front')) {
+                        this.localUser.setActualDeviceId(device.deviceId)
+                    }
+                });
+            });
         }).catch((error) => console.error(error));
     }
 
